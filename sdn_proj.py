@@ -25,6 +25,8 @@ class Scraper(threading.Thread):
         self.school = soup.find("title").next.extract()
         self.school = self.school.split(" ")
         self.school = " ".join(self.school[2:self.school.index("|")]).replace(" Application Thread", "")
+        self.school = self.school.replace("&amp;", "and")
+        self.school = self.school.replace("/", "-")
         try:
             page_count = int(soup.find("td", {"class":"vbmenu_control", "style":"font-weight:normal"}).next.extract().split(" ")[-1])
         except AttributeError:

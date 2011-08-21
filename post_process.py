@@ -3,7 +3,10 @@
 from __future__ import division
 from os import path, listdir, makedirs, popen
 import scipy
+from collections import defaultdict
 
+user_activity = defaultdict(int)
+good_users = set()
 
 class School(object):
     """docstring for School"""
@@ -12,12 +15,23 @@ class School(object):
         f = open(base_file)
         self.users = set()
         for line in f:
-            user, user_type, school_name = line.strip().split(",")
-            if user_type in ["Pre-Medical", "Unknown"]:
+            user, user_type, hr_date, machine_date, school_name = line.strip().split(",")
+            if user_type == "Pre-Medical":
                 self.users.add(user)
+        self.users.intersection_update(good_users)
         f.close()
         self.school_name = school_name.replace("&amp;", "and")
 
+def process_users(base_file):
+    f = open(base_file)
+    users = set()
+    for line in f:
+        user, user_type, hr_date, machine_date, school_name = line.strip().split(",")
+        if user_type in ["Pre-Medical", "Unknown"]:
+            users.add(user)
+    f.close()
+    for user in users:
+        user_activity[user] += 1
 
 def jaccard_index(s1, s2):
     isect = len(s1.users.intersection(s2.users))
@@ -79,14 +93,21 @@ def linearize(infile, outfile):
 def main():
     """Performs aggregation of scraped sdn data"""
     datadir = "./data/output/"
-    project_files = [datadir + f for f in listdir(datadir)]
+    project_files = [datadir + f for f in listdir(datadir) if not f.startswith(".")]
 
     output_dirname = "./data/cluster/"
     if not path.exists(output_dirname):
         print "Creating output directory: %s" % output_dirname
         makedirs(output_dirname)
 
+    [process_users(f) for f in project_files]
+
+    for user in user_activity:
+        if user_activity[user] > 1:
+            good_users.add(user)
+
     schools = [School(f) for f in project_files]
+
     jacc_mat = build_simm_matrix(schools, jaccard_index)
     snames = [s.school_name for s in schools]
     outfilename = output_dirname + "SxS_jaccard.pcl"

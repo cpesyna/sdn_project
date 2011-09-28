@@ -17,9 +17,7 @@ output_dirname = "./data/output/"
 today = datetime.datetime.today()
 yesterday = today - datetime.timedelta(1)
 today = today.strftime('%m-%d-%Y')
-print today
 yesterday = yesterday.strftime('%m-%d-%Y')
-print yesterday
 
 class Scraper(threading.Thread):
     """Threaded SDN forum scraper"""
@@ -86,7 +84,6 @@ class Scraper(threading.Thread):
 
         outfile.close()
 
-
     def run(self):
         while True:
             self.users = []
@@ -117,8 +114,6 @@ def main():
         queue.put(line.strip())
 
     queue.join()
-
-
 
 if __name__ == '__main__':
     main()
